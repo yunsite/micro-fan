@@ -4,6 +4,10 @@
 </div>
 <ul class="music">
 <?php 
+  $xiami['id'] = mysql_fetch_object(sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"')) -> xiami;
+  $data = 'http://www.xiami.com/widget/xml-dynamic/uid/' . $xiami['id'] . '/id/' . $xiami['id'] . '/width/235/height/346/mainColor/FF8719/backColor/494949/type/shuffle';
+  $xml = file_get_contents($data);
+  preg_match_all( "/\<track\>(.*?)\<\/track\>/s",$xml, $track ); 
   foreach($track[1] as $item){
   	preg_match_all( "/\<song_id\>(.*?)\<\/song_id\>/",$item, $song_id ); 
   	preg_match_all( "/\<album_cover\><!\[CDATA\[(.*?)\]\]>\<\/album_cover\>/",$item, $song_album );

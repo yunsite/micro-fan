@@ -50,9 +50,23 @@
   	  $entry = strip_tags($_POST['entry']);
   	  $mp3 = $_POST['mp3'];
   	  $video = $_POST['video'];
+  	  $time = time();
   	  $admin = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
   	  $admin = mysql_fetch_array($admin);
   	  $userid = $admin['administrator'];
+  	  if ($_FILES['image']['name'] != "") {
+        $imagename=$_FILES['image']['name']; 
+        $data = $_FILES['image']['tmp_name'];
+        $path = "upload/" . $imagename;
+        move_uploaded_file($data,$path);
+      }
+      if ($_GET['type'] == 'm') {
+        $type = '手机';
+      } else {
+        $type = '网页';	
+      }
+      sql_query("INSERT INTO " . DB_PREFIX . "entry VALUES ('', '$userid', '', '', '', '$entry', '$time', '$type', '0', '$path', '$mp3', '$video')");
+      //sync to other
   	  $weibo = array('0' => 'sina', '1' => 'tecent', '2' => 'wangyi');
   	  $oauth = array('0' => 'oauth_token', '1' => 'oauth_token_secret');
   	  foreach ($weibo as $item) {
@@ -60,31 +74,36 @@
   	  		$web = unserialize($admin[$item]);
   	  		$sync[$item][$o] = $web[$o];
   	  	}	
-  	  }
-  	  $time = time();
+  	  }//get oauth_token
   	  $mblog = $_POST['sync'];
-      $imagename=$_FILES['image']['name']; 
-      $data = $_FILES['image']['tmp_name'];
-      sql_query("INSERT INTO " . DB_PREFIX . "entry VALUES ('', '$userid', '', '', '', '$entry', '$time', '网页', '0', '$path', '$mp3', '$video')");
   	  if ($video != "") {
   	    $entry .= $video;
-  	  } 
+  	  } //if has video then add
+      $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
+      $user = mysql_fetch_array($user);
+      $microblog = unserialize($user['microblog']);
   	  if (is_array($mblog)) {
   	    foreach ($mblog as $key => $var) {
   	      if ($var == 'fanfou') {
-  	      	sync_fanfou(strip_tags($entry));
+  	      	sync_fanfou(strip_tags($entry),$microblog['ff']['name'],$microblog['ff']['pass']);
   	      } elseif ($var == 'sina') {
-  	      	  $c = new WeiboClient( WB_AKEY , WB_SKEY , $sync['sina']['oauth_token'] , $sync['sina']['oauth_token_secret'] );
+  	      	  $c = new WeiboClient( WB_AKEY , WB_SKEY , $microblog['sina']['oauth_token'] , $microblog['sina']['oauth_token_secret'] );
   	      	  $c -> update($entry);
   	      } elseif ($var == 'digu') {
-  	      	sync_digu(strip_tags($entry));
+  	      	sync_digu(strip_tags($entry),$microblog['dg']['name'],$microblog['dg']['pass']);
   	      } elseif ($var == 'qq') {
-  	        $tecent = new MBApiClient( MB_AKEY , MB_SKEY , $sync['tecent']['oauth_token'] , $sync['tecent']['oauth_token_secret'] );
+  	        $tecent = new MBApiClient( MB_AKEY , MB_SKEY , $microblog['qq']['oauth_token'] , $microblog['qq']['oauth_token_secret'] );
             $p =array('c' => $entry,'ip' => $_SERVER['REMOTE_ADDR'], 'j' => '','w' => '');
             $tecent->postOne($p);
-          } elseif ($var == 'wangyi') {
-          	$wangyi = new wy_WeiboClient( WY_AKEY, WY_SKEY, $sync['wangyi']['oauth_token'], $sync['wangyi']['oauth_token_secret']);
-          	  $wangyi -> update( $entry );
+          } elseif ($var == '163') {
+          	$wangyi = new wy_WeiboClient( WY_AKEY, WY_SKEY, $microblog['163']['oauth_token'], $microblog['163']['oauth_token_secret']);
+          	$wangyi -> update( $entry );
+  	      } elseif ($var == 'sohu') {
+  	      	sync_sohu($entry,$microblog['sh']['name'],$microblog['sh']['pass']);
+  	      } elseif ($var == 'tumblr') {
+  	        sync_tumblr($entry,$microblog['tumblr']['name'],$microblog['tumblr']['pass']);	
+  	      } elseif ($var == 'leihou') {
+  	        sync_leihou($entry,$microblog['lh']['name'],$microblog['lh']['pass']);	
   	      }
   	     }
   	  }
@@ -92,7 +111,7 @@
         go('/m/index.php');
       } else {
         go();	
-      }
+      }//go back index
   	break;
   	
     case 'del':
@@ -111,6 +130,31 @@
       $xiami = $_POST['xiami'];
       $douban = $_POST['douban'];
       $photo = $_POST['photo'];
+      $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
+      $user = mysql_fetch_array($user);
+      $microblog = unserialize($user['microblog']);
+  	  //micro account
+  	    $microblog['ff']['name'] = $_POST['f_name'];
+  	    $microblog['ff']['pass'] = $_POST['f_pass'];
+	  	  $microblog['dg']['name'] = $_POST['d_name'];
+	  	  $microblog['dg']['pass'] = $_POST['d_pass'];
+	  	  $microblog['sh']['name'] = $_POST['sh_name'];
+	  	  $microblog['sh']['pass'] = $_POST['sh_pass'];
+	  	  $microblog['lh']['name'] = $_POST['lh_name'];
+	  	  $microblog['lh']['pass'] = $_POST['lh_pass'];
+	  	  $microblog['tumblr']['name'] = $_POST['tumblr_name'];
+	  	  $microblog['tumblr']['pass'] = $_POST['tumblr_pass'];
+	  	sql_query('UPDATE ' . DB_PREFIX . 'user SET microblog = "' . addslashes(serialize($microblog)) . '" WHERE administrator = "' . $userid . '"'); 
+      //background
+				if ($_FILES['background']['name'] != "" ) {
+				  $bg_name=$_FILES['background']['name'];
+				  $bg = $_FILES['background']['tmp_name'];
+				  $stor = new Saestorage();
+				  if($stor -> upload( 'image' , $bg_name, $bg )){
+				    $bgurl = $stor -> getUrl ( 'image' , $bg_name);
+				  } 
+				  sql_query('UPDATE ' . DB_PREFIX . 'user SET skin = "' . $bgurl . '" WHERE administrator = "' . $userid . '"');
+				}
 			sql_query('UPDATE ' . DB_PREFIX . 'user SET nickname = "' . $nickname .'", mail = "' . $email .'", xiami = "' . $xiami . '", douban = "' . $douban . '", photo = "' . $photo . '" WHERE administrator ="' . $userid . '"');
 			$psw['ever'] = $_POST['psw_ever'];
 			$psw['new'] = $_POST['psw_new'];
@@ -200,36 +244,41 @@
     break;
     
     case 'insert_oauth':
+      $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
+      $user = mysql_fetch_array($user);
+      $microblog = unserialize($user['microblog']);
       switch ($_GET['mb']) {
       	case 'sina':
       	  $sina = new WeiboClient( WB_AKEY , WB_SKEY , $_SESSION['sina_last_key']['oauth_token'] , $_SESSION['sina_last_key']['oauth_token_secret']  );
           $sina = $sina->verify_credentials();
-          $sync['sina']['id'] = $sina['name'];
-          $sync['sina']['oauth_token'] = $_SESSION['sina_last_key']['oauth_token'];
-          $sync['sina']['oauth_token_secret'] = $_SESSION['sina_last_key']['oauth_token_secret'];
-          sql_query('UPDATE ' . DB_PREFIX . 'user SET sina = "' . addslashes(serialize($sync['sina'])) . '" WHERE username = "' . $_COOKIE['login_user'] . '"');
+          $microblog['sina']['id'] = $sina['name'];
+          $microblog['sina']['oauth_token'] = $_SESSION['sina_last_key']['oauth_token'];
+          $microblog['sina']['oauth_token_secret'] = $_SESSION['sina_last_key']['oauth_token_secret'];
         break;
         case 'qq':
-          $sync['qq']['id'] = $_SESSION['tecent_last_key']['name'];
-          $sync['qq']['oauth_token'] = $_SESSION['tecent_last_key']['oauth_token'];
-          $sync['qq']['oauth_token_secret'] = $_SESSION['tecent_last_key']['oauth_token_secret'];
-          sql_query('UPDATE ' . DB_PREFIX . 'user SET tecent = "' . addslashes(serialize($sync['qq'])) . '" WHERE username = "' . $_COOKIE['login_user'] . '"');
+          $microblog['qq']['id'] = $_SESSION['tecent_last_key']['name'];
+          $microblog['qq']['oauth_token'] = $_SESSION['tecent_last_key']['oauth_token'];
+          $microblog['qq']['oauth_token_secret'] = $_SESSION['tecent_last_key']['oauth_token_secret'];
         break;
         case '163':
           $wangyi = new wy_WeiboClient( WY_AKEY , WY_SKEY , $_SESSION['wangyi_last_key']['oauth_token'] , $_SESSION['wangyi_last_key']['oauth_token_secret']  );
           $wangyi = $wangyi->verify_credentials();
-          $sync['163']['id'] = $wangyi['name'];
-          $sync['163']['oauth_token'] = $_SESSION['wangyi_last_key']['oauth_token'];
-          $sync['163']['oauth_token_secret'] = $_SESSION['wangyi_last_key']['oauth_token_secret'];
-          sql_query('UPDATE ' . DB_PREFIX . 'user SET wangyi = "' . addslashes(serialize($sync['163'])) . '" WHERE username = "' . $_COOKIE['login_user'] . '"');
+          $microblog['163']['id'] = $wangyi['name'];
+          $microblog['163']['oauth_token'] = $_SESSION['wangyi_last_key']['oauth_token'];
+          $microblog['163']['oauth_token_secret'] = $_SESSION['wangyi_last_key']['oauth_token_secret'];
         break;
       }
+      sql_query('UPDATE ' . DB_PREFIX . 'user SET microblog = "' . addslashes(serialize($microblog)) . '" WHERE username = "' . $_COOKIE['login_user'] . '"');
       go(MF_URL . 'index.php?page=setting');
     break;
     
     case 'del_oauth':
       $mb = $_GET['mb'];
-      sql_query('UPDATE ' . DB_PREFIX . 'user SET ' . $mb . ' = "" WHERE username = "' . $_COOKIE['login_user'] . '"');
+      $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
+      $user = mysql_fetch_array($user);
+      $microblog = unserialize($user['microblog']);
+      $microblog[$mb] = array('id' => '', 'oauth_token' => '', 'oauth_token_secret' => '');
+      sql_query('UPDATE ' . DB_PREFIX . 'user SET microblog = "' . addslashes(serialize($microblog)) . '" WHERE username = "' . $_COOKIE['login_user'] . '"');
       echo "<script>alert('取消授权成功');location.href='index.php?page=setting';</script>";
     break;
     

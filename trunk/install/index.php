@@ -1,6 +1,14 @@
 <?php
   ob_start();
   error_reporting(E_ALL ^ E_NOTICE);
+    function sql_query($sqlcon){   
+      $con=mysql_connect(DB_HOST, DB_USER,DB_PASSWORD);
+      mysql_select_db(DB_NAME);
+      mysql_query("SET NAMES 'utf8'");
+      $result = mysql_query($sqlcon);
+      mysql_close($con);
+      return $result;
+    }  
 ?>
 <html>
 	<head>
@@ -28,6 +36,8 @@ switch ($step) {
 	case '1':
 	  if (file_exists('../config/config.php')) {
 	    echo '创建config.php成功>>><a href="index.php?step=2">下一步</a>';	
+	    require_once('../config/config.php');
+	    if(!mysql_connect(DB_HOST,DB_USER,DB_PASSWORD)) die("<p>友情提示——Mysql连接失败！请确认你的数据库登录信息</p>");
 	  } else {
 ?>
       <form action="act.php?step=1" method="POST">
@@ -45,27 +55,26 @@ switch ($step) {
   break;
   
   case '2':
-	  if (file_exists('../config/config.site.php')) {
-	    echo '创建config.site.php成功>>><a href="index.php?step=3">下一步</a>';	
-	  } else {
-      $site_url = "http://".$_SERVER['HTTP_HOST'].str_replace("install/index.php","",$_SERVER["SCRIPT_NAME"]);
-?>
-      <form action="act.php?step=2" method="POST">
-      	<label>微博标题:<input type="text" name="site_title"></label>
-      	<label>微博地址:<input type="text" name="site_url" value="<?php echo $site_url; ?>"></label>
-      	<label>微博描述:<input type="text" name="site_introduction"></label>
-      	<label>每页微博:<input type="text" name="site_pageone" value="20"></label>
-        <label><input id="submit" type="submit" value="确认"></label>
-      </form>
-<?php
-    } 
+		  if (file_exists('../config/config.site.php')) {
+		    echo '创建config.site.php成功>>><a href="index.php?step=3">下一步</a>';	
+		  } else {
+	      $site_url = "http://".$_SERVER['HTTP_HOST'].str_replace("install/index.php","",$_SERVER["SCRIPT_NAME"]);
+	?>
+	      <form action="act.php?step=2" method="POST">
+	      	<label>微博标题:<input type="text" name="site_title"></label>
+	      	<label>微博地址:<input type="text" name="site_url" value="<?php echo $site_url; ?>"></label>
+	      	<label>微博描述:<input type="text" name="site_introduction"></label>
+	      	<label>每页微博:<input type="text" name="site_pageone" value="20"></label>
+	        <label><input id="submit" type="submit" value="确认"></label>
+	      </form>
+	<?php
+	    } 
   break;
   
   case '3':
     require_once '../config/config.php';
-    require_once '../lib/function.php';
-    $test = mysql_num_rows(sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"'));
-    if ($test != 0) {
+    $test = mysql_fetch_object(sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"'));
+    if ($test) {
     	echo '微饭安装成功！O(∩_∩)O>>><a href="../index.php">返回首页</a>';
     } else {
 ?>

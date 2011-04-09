@@ -8,30 +8,15 @@
   	  require_once './template/comment.php';
   	break;
   	
-  	case 'music':
-      $xiami['id'] = mysql_fetch_object(sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"')) -> xiami;
-      $data = 'http://www.xiami.com/widget/xml-dynamic/uid/' . $xiami['id'] . '/id/' . $xiami['id'] . '/width/235/height/346/mainColor/FF8719/backColor/494949/type/shuffle';
-      $xml = file_get_contents($data);
-      preg_match_all( "/\<track\>(.*?)\<\/track\>/s",$xml, $track );  
+  	case 'music': 
   	  require_once './template/xiami.php';
   	break;
   	
   	case 'photo':
-      $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"');
-      $user = mysql_fetch_array($user);
-      $photoid = $user['photo'];
-      $flickr = file_get_contents("http://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=3df15beb1f581eda361ca6806fce63b5&user_id=" . $photoid . "&per_page=32");
-      $flickr = str_replace("photos","",$flickr);
-      preg_match_all("/<photo(.*?)\/>/s",$flickr,$photos);
-      $photo = $photos[1];
-      $count = count($photo);
   	  require_once './template/flickr.php';
   	break;
   	
   	case 'movie':
-      $douban = mysql_fetch_object(sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"')) -> douban;
-      $douban = file_get_contents('http://api.douban.com/people/' . $douban . '/collection?cat=movie&max-results=48');
-      preg_match_all("/\<db\:subject\>(.*?)<\/db\:subject>/s",$douban,$subject);
   	  require_once './template/douban.php';
   	break;
   	
@@ -41,9 +26,10 @@
       $userid = $user['administrator'];
       $nickname = $user['nickname'];
       $email = $user['mail'];
-      $sina = unserialize($user['sina']);
+      $microblog = unserialize($user['microblog']);
+      /*$sina = unserialize($user['sina']);
       $tecent = unserialize($user['tecent']);
-      $wangyi = unserialize($user['wangyi']);
+      $wangyi = unserialize($user['wangyi']);*/
       $xiami = $user['xiami'];
       $douban = $user['douban'];
       $photo = $user['photo'];
