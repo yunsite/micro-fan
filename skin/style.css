@@ -26,9 +26,6 @@ input, textarea {
 button {
   font-size:13px;	
 }
-html {
-  background:url("images/bg.jpg") no-repeat fixed 0 50% transparent;
-}
 body {
   width:600px;
   margin:0 auto;	
@@ -88,6 +85,14 @@ body {
 #entry ul li:hover {
   background-color:#F5FAFF;	
 }
+#entry ul li:hover .bottom a {
+  border-bottom:1px dotted #6688BB;
+  color:#6688BB;	
+}
+#entry ul li:hover .bottom a:hover {
+  border-bottom-style:solid;
+  text-decoration:none;	
+}
 .avatar {
   float:left;	
 }
@@ -116,7 +121,7 @@ body {
   float:right;	
 }
 .reply_post {
-  margin-top:12px;	
+  margin-top:17px;	
 }
 .reply_post form {
   margin-bottom:0;	
@@ -254,6 +259,19 @@ width:300px;
 }
 #post #submit {
     float:right;	
+}
+#add_photo, #add_music, #add_video {
+   background-image:url('images/medium.png');
+   width:28px;
+   height:30px;
+   text-indent:-999em;	
+   float:left;
+}
+#add_photo {
+   background-position: 28px 0;	
+}
+#add_music {
+   background-position: 56px 0;	
 }
 /*setting*/
 .setting {

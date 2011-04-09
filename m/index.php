@@ -11,7 +11,7 @@
 	      if ($_SESSION['login']) {
 	    ?>
 	        <div id="post">
-	          <form name="post" action="/action.php?act=save" method="POST">
+	          <form name="post" action="/action.php?act=save&type=m" method="POST">
 	    	      <span id="tip">你在做什么？</span>
 	            <p><input name="entry" id="entry" style="width:100%;"></p>	        
 	            <label><input type="checkbox" name="sync[]" value="fanfou" checked="checked">饭</label>
@@ -19,6 +19,7 @@
 	            <label><input type="checkbox" name="sync[]" value="digu" checked="checked">嘀</label>
 	            <label><input type="checkbox" name="sync[]" value="qq">腾</label>
 	            <label><input type="checkbox" name="sync[]" value="wangyi" checked="checked">易</label>
+	            <input type="hidden" name="MAX_FILE_SIZE" value="102400000"><input type="file" name="image">
 	            <p><input class="formbutton"type="submit" value="发表"></p>
 	            <input type="hidden" name="type" value="m">
 	          </form>

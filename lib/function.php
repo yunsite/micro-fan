@@ -184,7 +184,8 @@
     }
     
     function user_ip($ip) {
-      $url2 = file_get_contents("http://www.ip.cn/getip.php?action=queryip&ip_url=".$ip);
+      $f = new SaeFetchurl();
+      $url2 = $f->fetch("http://www.ip.cn/getip.php?action=queryip&ip_url=".$ip);
       $file2=iconv("gb2312", "utf-8",$url2);
       preg_match_all("/来自：(.*)/",$file2,$user_ip);
       return $user_ip[1][0];
@@ -256,38 +257,88 @@
       return $entrys;	
     }
     
-    function sync_fanfou($post) {
+    function sync_fanfou($post,$name,$pass) {
       $curl = curl_init();
       $post_data = 'status=' . urlencode($post) . '&source=fantang';
       curl_setopt($curl, CURLOPT_URL, 'http://api.fanfou.com/statuses/update.xml');
-      curl_setopt($curl, CURLOPT_USERPWD, f_name . ':' . f_pass);
+      curl_setopt($curl, CURLOPT_USERPWD, $name . ':' . $pass);
       curl_setopt($curl, CURLOPT_POST, true);
       curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
       $json = curl_exec($curl);
       curl_close($curl);
     }
 
-    function sync_digu($post) {
+    function sync_digu($post,$name,$pass) {
       $curl = curl_init();
       $post_data = 'content=' . urlencode($post) . '&source=API';
       curl_setopt($curl, CURLOPT_URL, 'http://api.minicloud.com.cn/statuses/update.xml');
-      curl_setopt($curl, CURLOPT_USERPWD, d_name . ':' . d_pass);
+      curl_setopt($curl, CURLOPT_USERPWD, $name . ':' . $pass);
       curl_setopt($curl, CURLOPT_POST, true);
       curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
       $json = curl_exec($curl);
       curl_close($curl);
     }
     
-    function sync_sina($post) {
-    	$post_data = 'source=2546437393&status='.urlencode($post);
+    
+    function sync_sohu($post,$name,$pass) {
+    	$post_data = 'status='.urlencode($post);
 	    $curl = curl_init();
 	    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-      curl_setopt($curl, CURLOPT_USERPWD, s_name . ':' . s_pass);
+      curl_setopt($curl, CURLOPT_USERPWD, $name . ':' . $pass);
     	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
      	curl_setopt($curl, CURLOPT_HEADER, 0);
       curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-	    curl_setopt($curl, CURLOPT_URL, 'http://api.t.sina.com.cn/statuses/update.json');
+	    curl_setopt($curl, CURLOPT_URL, 'http://api.t.sohu.com/statuses/update.json');
 	    $cdata = curl_exec($curl);
+    }
+    
+    function sync_leihou($post,$name,$pass) {
+    	$post_data = 'status='.urlencode($post);
+	    $curl = curl_init();
+	    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+      curl_setopt($curl, CURLOPT_USERPWD, $name . ':' . $pass);
+    	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+     	curl_setopt($curl, CURLOPT_HEADER, 0);
+      curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
+	    curl_setopt($curl, CURLOPT_URL, 'http://leihou.com/statuses/update.json');
+	    $cdata = curl_exec($curl);
+    }
+    
+    function sync_tumblr($post,$name,$pass) {
+			// Prepare POST request
+				$request_data = http_build_query(
+				    array(
+				        'email'     => $name,
+				        'password'  => $pass,
+				        'type'      => 'quote',
+				        'quote'    => $post,
+				        'source'   => '<a href="' . MF_URL . '" alt="' . MF_NAME . '">' . MF_NAME . '</a>'
+				    )
+				);
+			
+			// Send the POST request (with cURL)
+			$c = curl_init('http://www.tumblr.com/api/write');
+			curl_setopt($c, CURLOPT_POST, true);
+			curl_setopt($c, CURLOPT_POSTFIELDS, $request_data);
+			curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+			$result = curl_exec($c);
+			$status = curl_getinfo($c, CURLINFO_HTTP_CODE);
+			curl_close($c);
+    }
+    
+    function Douban($username, $subject, $apikey) {       
+      if ($apikey == "") {
+        $apikey='064e10081295144112ea301837bf3cc3';
+      }
+      $douban='http://api.douban.com/people/' . $username . '/collection?cat=' . $subject . '&apikey=' . $apikey ;
+      $f = new SaeFetchurl();
+      $content = $f->fetch($douban);
+      $feed =  simplexml_load_file($content);
+      $children =  $feed->children('http://www.w3.org/2005/Atom');
+      $a = $children-> entry->children('http://www.w3.org/2005/Atom')->xpath('//db:subject');
+      echo '<ul>';
+      foreach ($a as $d) echo '<li>' . $d -> title . '</li>';
+      echo '</ul>';
     }
     
     function get_nickname_by_userid($userid) {
@@ -341,5 +392,53 @@
         $t = str_replace(array('[+@]','[@+]','[-@+]'), array('<a','>','</a>'), $t);
         return $t;
     }
+    
+		function write($text,$file) {
+			$handle = @fopen($file, 'w');
+		
+			if ( @flock($handle, LOCK_EX) )
+			{
+				@fwrite($handle, $text);
+		
+				@flock($handle, LOCK_UN);
+			}
+					
+			@fclose($handle);	
+		}
+
+    function get_microblog() {
+  	  $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username ="' . $_COOKIE['login_user'] . '"');
+      $user = mysql_fetch_array($user);
+      $microblog = unserialize($user['microblog']);
+      return $microblog;
+    }
+    
+    function sync_option($type) {
+    	$microblog = get_microblog();
+    	if($type == 'sina' OR $type == 'qq' OR $type == '163') {
+    	  if ($microblog[$type]['id'] != '') {
+    	    return TRUE;	
+    	  }	else {
+    	    return FALSE;	
+    	  }
+    	} else {
+	    	if ($microblog[$type]['name'] != '' AND $microblog[$type]['pass'] != '') {
+	    	  return TRUE;	
+	    	} else {
+	    	  return FALSE;	
+	    	}
+	    }
+    }
+    
+    function service_option($type) {
+      $service = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator ="1"');
+      $service = mysql_fetch_array($service);
+      if ($service[$type] != '') {
+        return TRUE;	
+      }	else {
+        return FALSE;	
+      }
+    }
+    
  
 ?>

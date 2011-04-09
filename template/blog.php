@@ -7,28 +7,85 @@
 	      <form name="post" action="action.php?act=save" method="POST" enctype="multipart/form-data">
 	    	  <span id="tip">你还可以输入<span id="input_count">140</span>个字</span>
 	    	  <span id="sync" style="float:right;margin-top:-30px;">
-	          <label><input type="checkbox" name="sync[]" value="fanfou" checked="checked">饭否</label>
-	          <label><input type="checkbox" name="sync[]" value="sina" checked="checked">新浪</label>
-	          <label><input type="checkbox" name="sync[]" value="digu" checked="checked">嘀咕</label>
-	          <label><input type="checkbox" name="sync[]" value="qq">腾讯</label>
-	          <label><input type="checkbox" name="sync[]" value="wangyi" checked="checked">网易</label>
+            <?php 
+              if (sync_option('ff')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="fanfou" checked="checked">饭否</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('dg')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="digu" checked="checked">嘀咕</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('sh')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="sohu" checked="checked">搜狐</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('lh')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="leihou" checked="checked">雷猴</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('tumblr')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="tumblr" checked="checked">TumBlr</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('sina')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="sina" checked="checked">新浪</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('qq')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="qq" checked="checked">腾讯</label>
+            <?php 
+              } 
+            ?>
+            <?php 
+              if (sync_option('163')) { 
+            ?>
+                <label><input type="checkbox" name="sync[]" value="163" checked="checked">网易</label>
+            <?php 
+              } 
+            ?>
 	        </span>
 	        <textarea name="entry" id="entry" rows="3" onkeydown="if(event.ctrlKey&&event.keyCode==13){document.getElementById('submit').click();return false};" onkeyup="cState()"></textarea>
 
-	        <span  onclick="$('#upload').slideToggle();">上传图片</span>
+	        <div  id="add_photo" onclick="$('#upload').slideToggle();">上传图片</div>
 	        <label>
 	        	<input type="hidden" name="MAX_FILE_SIZE" value="102400000">
 	          <div id="upload" style="display:none;"><input type="file" name="image"></div>
 	        </label>
-	        <span onclick="$('#mp3').slideToggle();">添加音乐</span>
-	        <div id="mp3" style="display:none;"><input type="text" name="mp3">(可添加歌曲名称或mp3地址)</div>
-	        <span onclick="$('#video').slideToggle();">添加视频</span>
-	        <div id="video" style="display:none;"><p>输入视频网站播放页链接地址<br>目前已支持优酷网,土豆网,酷6网,56网等网站</p><input type="text" name="video"></div>
+	        <div id="add_music" onclick="$('#mp3').slideToggle();">添加音乐</div>
+	        <div id="mp3" style="display:none;">
+	        	<div>可添加歌曲名称或mp3地址,为确保歌曲的准确性，建议添加音乐URL</div>
+	        	<input type="text" name="mp3" style="width:400px;">
+	        </div>
+	        <div id="add_video" onclick="$('#video').slideToggle();">添加视频</div>
+	        <div id="video" style="display:none;">
+	        	<div>请直接输入视频网站播放页链接地址<br>目前已支持<a href="http://youku.com" target="_blank">优酷网</a>,<a href="http://tudou.com" target="_blank">土豆网</a>,<a href="http://ku6.com" target="_blank">酷6网</a>,<a href="http://56.com" target="_blank">56网</a>等网站</div>
+	        	<input type="text" name="video" style="width:400px;">
+	        </div>
 	        <input id="submit" class="formbutton" type="submit" value="发表">
 	      </form>
 	    </div>
 	<?php
-	}
+	  }
 	?>
 	<!--结束-->
 	

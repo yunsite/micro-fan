@@ -1,15 +1,19 @@
 <div id="main" class="flickr">
-	<ul>
-		<?php 
-      for($i=0;$i < $count;$i++) {
-        preg_match_all("/farm=\"(.*?)\"/s",$photo[$i],$farm);
-        preg_match_all("/server=\"(.*?)\"/s",$photo[$i],$server);
-        preg_match_all("/id\=\"(.*?)\"/",$photo[$i],$id);
-        preg_match_all("/secret\=\"(.*?)\"/",$photo[$i],$secret);
-        $photo_m = 'http://farm' . $farm[1][0] . '.static.flickr.com/'	. $server[1][0] . '/' . $id[1][0] . '_' . $secret[1][0] . '_m.jpg';
-        $photo_b = 'http://farm' . $farm[1][0] . '.static.flickr.com/'	. $server[1][0] . '/' . $id[1][0] . '_' . $secret[1][0] . '_b.jpg';	
-        echo '<li><a href="' . $photo_b . '" class="lightbox"><img src="' . $photo_m . '" alt="" /></a></li>';
-      }
-    ?>
-  </ul>
+	<?php 
+    $user = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE administrator = "1"');
+    $user = mysql_fetch_array($user);
+    $photoid = $user['photo'];
+		$data = file_get_contents("http://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=3df15beb1f581eda361ca6806fce63b5&user_id=" . $user['photo'] . "&per_page=32");
+	  $object = simpleXML_load_string($data);
+	  $photo = $object -> photos -> photo;
+	  echo '<ul class="photos">';
+	  foreach ($photo as $each) {
+	    $photo_m = 'http://farm' . $each['farm'] . '.static.flickr.com/'	. $each['server'] . '/' . $each['id'] . '_' . $each['secret'] . '_m.jpg';
+		  $photo_b = 'http://farm' . $each['farm'] . '.static.flickr.com/'	. $each['server'] . '/' . $each['id'] . '_' . $each['secret'] . '_b.jpg';
+	 	  echo '<li>';
+		  echo '<a href="' . $photo_b . '" class="lightbox"><img src="' . $photo_m . '" /></a>'; 
+		  echo '</li>';
+	  }
+	  echo '</ul>';
+ ?>
 </div>

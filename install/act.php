@@ -1,20 +1,14 @@
 <?php
 error_reporting(E_ALL ^ E_NOTICE);
-function write($text,$file) {
-	$handle = @fopen($file, 'w');
-
-	if ( @flock($handle, LOCK_EX) )
-	{
-		@fwrite($handle, $text);
-
-		@flock($handle, LOCK_UN);
-	}
-			
-	@fclose($handle);	
+require_once '../lib/function.php';
+if (file_exists('../config/config.php')) {
+  require_once '../config/config.php';	
+}
+if (file_exists('../config/config.site.php')) {
+	require_once '../config/config.site.php';
 }
 
-$step = $_GET['step'];
-switch ($step) {
+switch ($_GET['step']) {
 	case '1':
 	  if(isset($_POST['db_host'],$_POST['db_user'],$_POST['db_password'],$_POST['db_name'],$_POST['db_prefix'])) {
 	    $db = array( host => strtolower(trim($_POST['db_host'])), user => strtolower(trim($_POST['db_user'])), password => $_POST['db_password'], name => strtolower(trim($_POST['db_name'])), prefix => strtolower(trim($_POST['db_prefix'])));	
@@ -92,50 +86,87 @@ switch ($step) {
 
 	  $config_str .= "define('DB_HOST', '" . $db['host'] . "');";
 
-	  $config_str .= "\n";
+	  $config_str .= "\n\n";
+	  
+	  $config_str .= "/*新浪账号*/";
+	  
+	  $config_str .= "\n\n";
+	  
+	  $config_str .= "define('WB_AKEY', '2546437393');";
+	  
+	  $config_str .= "\n\n";
+	  
+    $config_str .= "define('WB_SKEY', '5abfaae87a665fc316361a8fe72e59ce');";
+	  
+	  $config_str .= "\n\n";
+	  
+	  $config_str .= "/*网易账号*/";
+	  
+	  $config_str .= "\n\n";
+	  
+    $config_str .= "define('WY_AKEY', '1DwF5Hicfzwz3geI');";
+	  
+	  $config_str .= "\n\n";
+	  
+	  $config_str .= "define('WY_SKEY', 'IRqSfMwPE8didR8llwuHAL8w5WDkw78g');";
+	  
+	  $config_str .= "\n\n";
+	  
+    $config_str .= "/*腾讯账号*/";
+	  
+	  $config_str .= "\n\n";
+	  
+    $config_str .= "define('MB_AKEY', '064a2f5a7fac499f82a17a50fc63800d');";
+	  
+	  $config_str .= "\n\n";
+	  
+    $config_str .= "define('MB_SKEY', '3823b0d39378374770908ab5de28fce6');";
+	  
+	  $config_str .= "\n\n";
  
 	  $config_str .= '?>';
 	
 	  /*写入到config文件中*/
 	  $file = '../config/config.php';
 	  write($config_str,$file);
+    sql_query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "entry` (
+							  `id` int(10) NOT NULL AUTO_INCREMENT,
+							  `userid` int(1) NOT NULL,
+							  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `url` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `content` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+							  `time` int(10) NOT NULL,
+							  `from` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `reply_id` int(10) NOT NULL,
+							  `img` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `mp3` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `video` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  PRIMARY KEY (`id`),
+							  KEY `time` (`time`)) 
+                ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci	");
+	  sql_query("CREATE TABLE IF NOT EXISTS `mf_user` (
+							  `id` int(10) NOT NULL AUTO_INCREMENT,
+							  `username` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `mail` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `administrator` int(1) NOT NULL,
+							  `sina` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+							  `tecent` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+							  `wangyi` mediumtext COLLATE utf8_unicode_ci NOT NULL,
+							  `xiami` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `douban` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `photo` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  `skin` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+							  PRIMARY KEY (`id`)) 
+							  ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+		$time = time();
+    sql_query("INSERT INTO `" . DB_PREFIX . "entry` VALUES ('', 1, '', '', '', 'Hello,World!', '$time', '网页', 0, '', '', '')");
 	  header('location:index.php?step=1');
 	break;
 	
 	case '2':
-	  require_once '../config/config.php';
-	  require_once '../lib/function.php';
-    sql_query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "entry` (
-  		`id` int(10) NOT NULL AUTO_INCREMENT,
-  		`userid` int(1) NOT NULL,
-  		`nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  		`email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  		`url` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  		`content` mediumtext COLLATE utf8_unicode_ci NOT NULL,
-  		`time` int(10) NOT NULL,
- 		  `from` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
- 		  `reply_id` int(10) NOT NULL,
- 		  `img` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-		  `mp3` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-		  `video` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-		  PRIMARY KEY (`id`),KEY `time` (`time`)) 
-		  ENGINE=MyISAM DEFAULT CHARSET=utf8");
-    sql_query("INSERT INTO `" . DB_PREFIX . "entry` (`id`, `userid`, `nickname`, `email`, `url`, `content`, `time`, `from`, `reply_id`) VALUES ('', 1, '', '', '', 'Hello,World!', '$time', '网页', 0)");
-    sql_query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "user` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
-  `username` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `nickname` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `mail` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `administrator` int(1) NOT NULL,
-  `sina` mediumtext COLLATE utf8_unicode_ci NOT NULL,
-  `tecent` mediumtext COLLATE utf8_unicode_ci NOT NULL,
-  `wangyi` mediumtext COLLATE utf8_unicode_ci NOT NULL,
-  `xiami` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `douban` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `photo` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
 	  if (isset($_POST['site_title'],$_POST['site_url'],$_POST['site_introduction'],$_POST['site_pageone'])) {
 	    $site = array( title => $_POST['site_title'], url => $_POST['site_url'], introdunction => $_POST['site_introduction'], pageone => $_POST['site_pageone']);	
 	  }
@@ -178,14 +209,11 @@ switch ($step) {
 	break;
 	
 	case '3':
-	  require_once '../config/config.php';
-	  require_once '../config/config.site.php';
-	  require_once '../lib/function.php';
 	  $user = $_POST['admin_user'];
 	  $password = md5($_POST['admin_password']);
 	  $nickname = $_POST['admin_nickname'];
-	  $email = $_POST['admin_email'];
-    sql_query("INSERT INTO `" . DB_PREFIX . "user` VALUES ('', '$user', '$nickname', '$email', '$password', '1', '', '', '', '', '', '')");
+	  $email = $_POST['admin_email'];   
+    sql_query("INSERT INTO `" . DB_PREFIX . "user` VALUES ('','$user', '$nickname', '$email', '$password', '1','','','','','','','')");
     header('location:index.php?step=3');
 break;
 }
