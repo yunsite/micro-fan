@@ -282,4 +282,9 @@
       echo "<script>alert('取消授权成功');location.href='index.php?page=setting';</script>";
     break;
     
+    case 'addlink':
+        sql_query("INSERT INTO " . DB_PREFIX . "link VALUES ('','" . $_POST['name'] . "','" . $_POST['description'] . "','" . $_POST['url'] . "',0)");	
+        go('index.php?page=link');
+    break;
+    
   }

@@ -34,6 +34,7 @@
       <ul>
 				<li><a href="index.php">首页</a></li>
 				<li><a href="index.php?page=widget">微博秀</a></li>
+				<li><a href="index.php?page=link">友链</a></li>
 				<?php 
 				  if (service_option('xiami')) {
 				?>
