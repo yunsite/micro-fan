@@ -113,6 +113,10 @@
   	  require_once './template/search.php';
   	break;
   	
+  	case 'link':
+  	  require_once './template/link.php';
+  	break;
+  	
   	default:
   	  $login = sql_query('SELECT * FROM ' . DB_PREFIX . 'user WHERE username = "' . $_COOKIE['login_user'] . '"');
   	  $login = mysql_fetch_array($login);
